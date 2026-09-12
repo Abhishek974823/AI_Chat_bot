@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-api_key = os.environ.get("api")
+api_key = os.environ.get("OPENAI_API_KEY")
 
 views = Blueprint('views',__name__)
 
