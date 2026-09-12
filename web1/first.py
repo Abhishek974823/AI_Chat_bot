@@ -19,6 +19,16 @@ answe = []
 message = []
 @views.route('/', methods=["GET","POST"])
 def home():
+    if "promp" not in session:
+        session["promp"] = []
+    if "answe" not in session:
+        session["answe"] = []
+    if "message" not in session:
+        session["message"] = []
+
+    promp = session["promp"]
+    answe = session["answe"]
+    message = session["message"]
     if request.method == "POST":
         prompt = request.form["prompt"]
         message.append({
@@ -40,8 +50,18 @@ def home():
         "role": "assistant",
         "content": res_jn["choices"][0]["message"]["content"]
       })
+            session["promp"] = promp
+            session["answe"] = answe
+            session["message"] = message
         else:
             promp.append(prompt)
             answe.append("error")
+            message.append({
+                    "role": "assistant",
+                    "content": "error"
+            })
+            session["promp"] = promp
+            session["answe"] = answe
+            session["message"] = message
         return redirect(url_for("views.home"))
     return render_template("home.html",prompts=promp, answers=answe)
