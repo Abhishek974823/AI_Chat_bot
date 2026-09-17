@@ -55,13 +55,17 @@
             Hi, I'm Nova. Ask me anything.
           </div>
         </div>
-       {% for i in range(prompts|length): %}
+       {% for i in message %}
+       {%if i.role == "user"%}
        <div class="d-flex justify-content-end mb-3">
-        <div class="bg-primary text-white rounded-3 px-3 py-2">{{ prompts[i] }}</div>
+        <div class="bg-primary text-white rounded-3 px-3 py-2">{{ i.message }}</div>
       </div>
+      {% endif %}
+      {%if i.role == "assistant"%}
       <div class="d-flex justify-content-start mb-3">
-        <div class="bg-light rounded-3 px-3 py-2">{{ answers[i] }}</div>
+        <div class="bg-light rounded-3 px-3 py-2">{{ i.message }}</div>
       </div>
+      {% endif %}
       {% endfor %}
         <!-- more messages get added here by JavaScript when you type -->
         

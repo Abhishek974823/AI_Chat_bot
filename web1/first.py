@@ -2,8 +2,14 @@ from flask import Blueprint,render_template,request,redirect, url_for, session
 import requests
 import os
 from dotenv import load_dotenv
-import random
+from . import db
+import uuid
 
+class user(db.Model):
+    id = db.Column("id",db.Integer,primary_key = True)
+    user_id = db.Column("user_id",db.String(33),nullable=False)
+    role = db.Column("role",db.String(20),nullable=False)
+    message = db.Column("message",db.String(2000),nullable=False)
 load_dotenv()
 
 api_key = os.environ.get("OPENAI_API_KEY")
@@ -15,25 +21,24 @@ header = {
     "Content-Type": "application/json",
     "Authorization": f"Bearer {api_key}"
 }
-promp = []
-answe = []
-message = []
+
+
 @views.route('/', methods=["GET","POST"])
 def home():
     if "user_id" not in session:
-        session["user_id"] = random.randint(1,1000)
-        promp.clear()
-        answe.clear()
-        message.clear()
+        session["user_id"] = uuid.uuid4().hex
     user_id = session["user_id"]
-    #promp = session["promp"]
-    #answe = session["answe"]
-    #message = session["message"]
     if request.method == "POST":
+        message = []
         prompt = request.form["prompt"]
-        message.append({
-                "role": "user",
-                "content": f"{prompt}"
+        usr = user(user_id = user_id, role = "user" ,message = prompt)
+        db.session.add(usr)
+        db.session.commit()
+        mes = user.query.filter_by(user_id = user_id).order_by(user.id).all()
+        for i in mes:
+            message.append({
+                "role": i.role,
+                "content": i.message
             })
         data = {
             "model": "openai/gpt-oss-120b",
@@ -44,24 +49,13 @@ def home():
         print(response.status_code)
         print(response.text)
         if response.status_code == 200:
-            promp.append(prompt)
-            answe.append(res_jn["choices"][0]["message"]["content"])
-            message.append({
-        "role": "assistant",
-        "content": res_jn["choices"][0]["message"]["content"]
-      })
-            #session["promp"] = promp
-            #session["answe"] = answe
-            #session["message"] = message
+            usr1 = user(user_id = user_id, role = "assistant" ,message = res_jn["choices"][0]["message"]["content"])
+            db.session.add(usr1)
+            db.session.commit()
         else:
-            promp.append(prompt)
-            answe.append("error")
-            message.append({
-                    "role": "assistant",
-                    "content": "error"
-            })
-            #session["promp"] = promp
-            #session["answe"] = answe
-            #session["message"] = message
+            usr2 = user(user_id = user_id, role = "assistant" ,message = "error")
+            db.session.add(usr2)
+            db.session.commit()
         return redirect(url_for("views.home"))
-    return render_template("home.html",prompts=promp, answers=answe)
+    mess = user.query.filter_by(user_id = user_id).order_by(user.id).all()
+    return render_template("home.html",message = mess)
