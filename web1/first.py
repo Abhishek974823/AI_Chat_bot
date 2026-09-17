@@ -9,7 +9,7 @@ class user(db.Model):
     id = db.Column("id",db.Integer,primary_key = True)
     user_id = db.Column("user_id",db.String(33),nullable=False)
     role = db.Column("role",db.String(20),nullable=False)
-    message = db.Column("message",db.String(2000),nullable=False)
+    message = db.Column("message",db.Text,nullable=False)
 load_dotenv()
 
 api_key = os.environ.get("OPENAI_API_KEY")
